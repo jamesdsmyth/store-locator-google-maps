@@ -1,27 +1,16 @@
 var locations = [
-  {lat: -31.563910, lng: 147.154312, store: 'Store 1', region: 'dubai'},
-  {lat: -33.718234, lng: 150.363181, store: 'Store 2', region: 'dubai'},
-  {lat: -33.727111, lng: 150.371124, store: 'Store 3', region: 'dubai'},
-  {lat: -33.848588, lng: 151.209834, store: 'Store 4', region: 'dubai'},
-  {lat: -39.927193, lng: 175.053218, store: 'Store 5', region: 'dubai'},
-  {lat: -41.330162, lng: 174.865694, store: 'Store 6', region: 'dubai'},
-  {lat: -42.734358, lng: 147.439506, store: 'Store 7', region: 'dubai'},
-  {lat: -42.734358, lng: 147.501315, store: 'Store 8', region: 'dubai'},
-  {lat: -42.735258, lng: 147.438000, store: 'Store 9', region: 'dubai'},
-  {lat: -43.999792, lng: 170.463352, store: 'Store 10', region: 'dubai'},
-  {lat: -33.851702, lng: 151.216968, store: 'Store 11', region: 'abu dhabi'},
-  {lat: -34.671264, lng: 150.863657, store: 'Store 12', region: 'abu dhabi'},
-  {lat: -35.304724, lng: 148.662905, store: 'Store 13', region: 'abu dhabi'},
-  {lat: -36.817685, lng: 175.699196, store: 'Store 14', region: 'abu dhabi'},
-  {lat: -36.828611, lng: 175.790222, store: 'Store 15', region: 'abu dhabi'},
-  {lat: -37.750000, lng: 145.116667, store: 'Store 16', region: 'al ain'},
-  {lat: -37.759859, lng: 145.128708, store: 'Store 17', region: 'al ain'},
-  {lat: -37.765015, lng: 145.133858, store: 'Store 18', region: 'al ain'},
-  {lat: -37.770104, lng: 145.143299, store: 'Store 19', region: 'al ain'},
-  {lat: -37.773700, lng: 145.145187, store: 'Store 20', region: 'al ain'},
-  {lat: -37.774785, lng: 145.137978, store: 'Store 21', region: 'al ain'},
-  {lat: -37.819616, lng: 144.968119, store: 'Store 22', region: 'al ain'},
-  {lat: -38.330766, lng: 144.695692, store: 'Store 23', region: 'al ain'}
+  {lat: 25.02837276, lng: 55.10192871, mall: 'Mall of the Emirates', region: 'Dubai'},
+  {lat: 25.03708281, lng: 55.11978149, mall: 'Oasis Mall', region: 'Dubai'},
+  {lat: 25.03708281, lng: 55.1651001, mall: 'Dubai Mall', region: 'Dubai'},
+  {lat: 25.00721721, lng: 55.29693604, mall: 'BurJuman', region: 'Dubai'},
+  {lat: 25.01219532, lng: 54.98519897, mall: 'City Centre Deira', region: 'Dubai'},
+  {lat: 25.15522939, lng: 55.21728516, mall: 'Festival City Mall', region: 'Dubai'},
+  {lat: 25.16144447, lng: 55.24475098, mall: 'Ibn Battuta Mall', region: 'Dubai'},
+  {lat: 25.21363863, lng: 55.33126831, mall: 'Mercato Shopping Mall', region: 'Dubai'},
+  {lat: 25.15647244, lng: 55.45074463, mall: 'Wafi Mall', region: 'Dubai'},
+  {lat: 25.27698715, lng: 55.32852173, mall: 'Dragon Mart', region: 'Dubai'},
+  {lat: 25.29312953, lng: 55.37384033, mall: 'Dubai Outlet Mall', region: 'Abu Dhabi'},
+  {lat: 25.34030262, lng: 55.43426514, mall: 'Grand Shopping Mall', region: 'Abu Dhabi'}
 ]
 
 var map;
@@ -30,24 +19,21 @@ var markerCluster;
 var listCreated = false;
 var selectedLocations = locations;
 
+
 function initMap() {
 
   map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 3,
-    center: {lat: -28.024, lng: 140.887}
+    zoom: 10,
+    center: {
+      lat: 25.21363863,
+      lng: 55.27496338
+    }
   });
-
-  // Create an array of alphabetical characters used to label the markers.
-  // var labels = 't';
-
-  // Add some markers to the map.
-  // Note: The code uses the JavaScript Array.prototype.map() method to
-  // create an array of markers based on a given "locations" array.
-  // The map() method here has nothing to do with the Google Maps API.
 
   createMarkers();
   createList();
   attachListClickEvent();
+  hideMapInfoClick();
 }
 
 createMarkers = function() {
@@ -61,8 +47,16 @@ createMarkers = function() {
     });
 
     google.maps.event.addListener(marker, 'click', function() {
-      console.log(this)
-      highlightListItem(this.label);
+      selectListItem(this.label);
+      panTo(this.label - 1);
+    });
+
+    google.maps.event.addListener(marker, 'mouseover', function() {
+        highlightListItem(this.label);
+    });
+
+    google.maps.event.addListener(marker, 'mouseout', function() {
+      removeHightlight();
     });
 
     return marker;
@@ -97,11 +91,19 @@ createList = function() {
 highlightListItem = function(index) {
   removeHightlight();
   $('#store-list li').eq((index - 1)).addClass('highlight');
-  // google.maps.event.trigger(markers[index], 'click');
 }
 
 removeHightlight = function() {
   $('#store-list li').removeClass('highlight');
+}
+
+selectListItem = function(index) {
+  removeSelect();
+  $('#store-list li').eq((index - 1)).addClass('selected');
+}
+
+removeSelect = function() {
+  $('#store-list li').removeClass('selected');
 }
 
 initSearch = function() {
@@ -118,12 +120,18 @@ search = function(value) {
   selectedLocations = [];
 
   var b = 1;
+  var loweredValue = value.toLowerCase();
 
   // looping through each
   for(var i = 0; i < locations.length; i++) {
-    if(locations[i].region.indexOf(value) > -1) {
-      createListItem(locations[i], b);
-      selectedLocations.push(locations[i]);
+
+    var location = locations[i];
+    var loweredMall = location.mall.toLowerCase();
+    var loweredRegion = location.region.toLowerCase();
+
+    if((loweredMall.indexOf(loweredValue) > -1) || (loweredRegion.indexOf(loweredValue) > -1)) {
+      createListItem(location, b);
+      selectedLocations.push(location);
 
       b = b + 1;
     }
@@ -138,20 +146,57 @@ replotMarkers = function() {
 }
 
 createListItem = function(location, value) {
-  $('#store-list').append("<li data-index='" + value + "'><p>" + value + ' - ' + location.store + "</p><span>" + location.region +"</span></li>");
+  $('#store-list').append("<li data-index='" + value + "'><p>" + value + ' - ' + location.mall + "</p><span>" + location.region +"</span></li>");
 }
 
 attachListClickEvent = function() {
   $('#store-list').on('mouseover', 'li', function(event) {
     var index = $(this).attr('data-index');
-    map.panTo(markers[index].getPosition());
-    map.setZoom(14);
+    var newIndex = parseInt(index) - 1;
+
+    if($('.selected').length === 0) {
+      panTo(newIndex);
+      map.setZoom(map.getZoom());
+    }
+
     highlightListItem(index);
-    // need to get the long and lat and then focus on the map from here.
   });
 
   $('#store-list').on('mouseout', 'li', function(event) {
     removeHightlight();
-    // need to get the long and lat and then focus on the map from here.
   });
+
+  $('#store-list').on('click', 'li', function(event) {
+    var index = $(this).attr('data-index');
+    var newIndex = parseInt(index) - 1;
+
+    panTo(newIndex);
+    // map.setZoom(map.getZoom());
+    map.setZoom(14);
+
+    selectListItem(index);
+    showMapInfo(index);
+  });
+}
+
+panTo = function(index) {
+  map.panTo(markers[index].getPosition());
+}
+
+hideMapInfoClick = function() {
+  $('.close-map-info').click(function() {
+    hideMapInfo();
+  })
+}
+
+showMapInfo = function(index) {
+  var location = locations[index];
+  $('.mall').html(location.mall);
+  $('.region').html(location.region);
+  $('#map-info').removeClass('hidden');
+}
+
+hideMapInfo = function() {
+  $('#map-info').addClass('hidden');
+  removeSelect();
 }
