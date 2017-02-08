@@ -47,8 +47,10 @@ createMarkers = function() {
     });
 
     google.maps.event.addListener(marker, 'click', function() {
-      selectListItem(this.label);
-      panTo(this.label - 1);
+      selectListItem(this.id);
+
+      panTo(this.id - 1);
+      showMapInfo((this.id - 1));
     });
 
     google.maps.event.addListener(marker, 'mouseover', function() {
@@ -115,6 +117,7 @@ initSearch = function() {
 search = function(value) {
   document.getElementById('store-list').innerHTML = '';
   removeHightlight();
+  hideMapInfo();
 
   // clearing the marker list serch
   selectedLocations = [];
@@ -175,7 +178,7 @@ attachListClickEvent = function() {
     map.setZoom(14);
 
     selectListItem(index);
-    showMapInfo(index);
+    showMapInfo(newIndex);
   });
 }
 
