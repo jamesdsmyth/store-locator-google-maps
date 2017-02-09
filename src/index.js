@@ -3,11 +3,11 @@ var locations = [
   {lat: 25.03708281, lng: 55.11978149, mall: 'Oasis Mall', region: 'Dubai'},
   {lat: 25.03708281, lng: 55.1651001, mall: 'Dubai Mall', region: 'Dubai'},
   {lat: 25.00721721, lng: 55.29693604, mall: 'BurJuman', region: 'Dubai'},
-  {lat: 25.01219532, lng: 54.98519897, mall: 'City Centre Deira', region: 'Dubai'},
+  {lat: 25.01888433, lng: 54.98077869, mall: 'City Centre Deira', region: 'Dubai'},
   {lat: 25.15522939, lng: 55.21728516, mall: 'Festival City Mall', region: 'Dubai'},
   {lat: 25.16144447, lng: 55.24475098, mall: 'Ibn Battuta Mall', region: 'Dubai'},
-  {lat: 25.21363863, lng: 55.33126831, mall: 'Mercato Shopping Mall', region: 'Dubai'},
-  {lat: 25.15647244, lng: 55.45074463, mall: 'Wafi Mall', region: 'Dubai'},
+  {lat: 25.21363863, lng: 55.33126831, mall: 'Mercato Shopping Mall', region: 'Al Ain'},
+    {lat: 25.15647244, lng: 55.45074463, mall: 'Wafi Mall', region: 'Al Ain'},
   {lat: 25.27698715, lng: 55.32852173, mall: 'Dragon Mart', region: 'Dubai'},
   {lat: 25.29312953, lng: 55.37384033, mall: 'Dubai Outlet Mall', region: 'Abu Dhabi'},
   {lat: 25.34030262, lng: 55.43426514, mall: 'Grand Shopping Mall', region: 'Abu Dhabi'}
@@ -16,12 +16,10 @@ var locations = [
 var map;
 var markers = [];
 var markerCluster;
-var listCreated = false;
 var selectedLocations = locations;
 var pin = {};
 var pinBig = {};
 var selectedLocationIndex = 0;
-var hoveringLocationIndex;
 
 function initMap() {
 
@@ -57,12 +55,12 @@ createMarkers = function() {
 
   markers = selectedLocations.map(function(location, i) {
     var label = i + 1;
+
     var marker = new google.maps.Marker({
       position: location,
       label: ""+ label +"",
       id: label,
       icon: pin
-      // icon: './src/images/pin.png'
     });
 
     google.maps.event.addListener(marker, 'click', function() {
@@ -100,8 +98,6 @@ createClusters = function() {
 }
 
 createList = function() {
-  if(!listCreated) {
-
     var b = 1;
 
     for(var i = 0; i < locations.length; i++) {
@@ -109,9 +105,7 @@ createList = function() {
       b = b + 1;
     }
 
-    listCreated = true;
     initSearch();
-  }
 }
 
 setMarker = function(index) {
@@ -194,6 +188,13 @@ attachListClickEvent = function() {
     setMarker(parseInt(index) - 1);
 
     highlightListItem(index);
+
+    var marker = markers[index - 1];
+    var isInbounds = isMarkerInBounds(marker);
+
+    if(!isInbounds) {
+      map.panTo(marker.getPosition());
+    }
   });
 
   $('#store-list').on('mouseout', 'li', function(event) {
@@ -205,6 +206,8 @@ attachListClickEvent = function() {
   $('#store-list').on('click', 'li', function(event) {
     var index = $(this).attr('data-index');
     selectedLocationIndex = parseInt(index) - 1;
+
+    console.log(markerCluster);
 
     setMarker(selectedLocationIndex);
     panTo(selectedLocationIndex);
@@ -237,4 +240,8 @@ showMapInfo = function(index) {
 hideMapInfo = function() {
   $('#map-info').addClass('hidden');
   removeSelect();
+}
+
+isMarkerInBounds = function(marker) {
+  return map.getBounds().contains(marker.getPosition());
 }
