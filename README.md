@@ -1,1 +1,1 @@
-# store-locator-google-maps
+# Store locator functionality for Google maps

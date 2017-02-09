@@ -21,6 +21,7 @@ var pin = {};
 var pinBig = {};
 var selectedLocationIndex = 0;
 
+// initialising the map
 function initMap() {
 
   map = new google.maps.Map(document.getElementById('map'), {
@@ -31,6 +32,7 @@ function initMap() {
     }
   });
 
+  // standard pin
   pin = {
     url: 'https://maps.gstatic.com/mapfiles/api-3/images/spotlight-poi-dotless_hdpi.png',
     scaledSize: new google.maps.Size(22, 40),
@@ -38,6 +40,7 @@ function initMap() {
     anchor: new google.maps.Point(11, 40)
   }
 
+  // selected location or on hover pin
   pinBig = {
     url: './src/images/big-pin.png',
     scaledSize: new google.maps.Size(28, 50),
@@ -51,6 +54,7 @@ function initMap() {
   hideMapInfoClick();
 }
 
+// loop through the selected locations and create a pin for each which is added to the map
 createMarkers = function() {
 
   markers = selectedLocations.map(function(location, i) {
@@ -63,6 +67,7 @@ createMarkers = function() {
       icon: pin
     });
 
+    // click event attached onto each pin
     google.maps.event.addListener(marker, 'click', function() {
       resetMarker(selectedLocationIndex);
       selectedLocationIndex = this.id - 1;
@@ -71,11 +76,13 @@ createMarkers = function() {
       setMarker(parseInt(selectedLocationIndex));
     });
 
+    // mouseover event attached onto each pin
     google.maps.event.addListener(marker, 'mouseover', function() {
       highlightListItem(this.id);
       setMarker(parseInt(this.id) - 1);
     });
 
+    // mouseout event attached onto each pin
     google.maps.event.addListener(marker, 'mouseout', function() {
       removeHightlight();
       if (selectedLocationIndex !== parseInt(this.id) - 1) {
@@ -89,6 +96,7 @@ createMarkers = function() {
   createClusters();
 }
 
+// creating the clusters that the markers will be within when zoomed out
 createClusters = function() {
   markerCluster = new MarkerClusterer(map, markers,
     {
@@ -98,6 +106,7 @@ createClusters = function() {
   );
 }
 
+// creating the LHS list of locations
 createList = function() {
     var b = 1;
 
@@ -109,6 +118,7 @@ createList = function() {
     initSearch();
 }
 
+// setting the marker so it is bigger and centered on the map
 setMarker = function(index) {
   markers[index].setIcon(pinBig);
 
@@ -119,36 +129,43 @@ setMarker = function(index) {
 
 }
 
+// resetting the marker back to its normal size
 resetMarker = function(index) {
   if(!$('#store-list li').eq((index)).hasClass('selected')) {
     markers[index].setIcon(pin);
   }
 }
 
+// highlighting the list item
 highlightListItem = function(index) {
   removeHightlight();
   $('#store-list li').eq((index - 1)).addClass('highlight');
 }
 
+// removing highlight of the list item
 removeHightlight = function() {
   $('#store-list li').removeClass('highlight');
 }
 
+// clicking on the list item will select it
 selectListItem = function(index) {
   removeSelect();
   $('#store-list li').eq((index - 1)).addClass('selected');
 }
 
+// clicking on another list item or closing the info box will deselect a list item
 removeSelect = function() {
   $('#store-list li').removeClass('selected');
 }
 
+// initialising the search functionality
 initSearch = function() {
   window.addEventListener('input', function (e) {
     search(e.target.value);
   }, false);
 }
 
+// on keyup we cross referene the current locations with the text input and filter if need be
 search = function(value) {
   document.getElementById('store-list').innerHTML = '';
   removeHightlight();
@@ -178,15 +195,18 @@ search = function(value) {
   replotMarkers();
 }
 
+// replotting the markers when the search input changes
 replotMarkers = function() {
   markerCluster.clearMarkers();
   createMarkers();
 }
 
+// creating the list item that goes in the LHS <ul />
 createListItem = function(location, value) {
   $('#store-list').append("<li data-index='" + value + "'><p>" + value + ' - ' + location.mall + "</p><span>" + location.region +"</span></li>");
 }
 
+// attaching the list item events click/mouseover/mouseout
 attachListClickEvent = function() {
   $('#store-list').on('mouseover', 'li', function(event) {
     var index = $(this).attr('data-index');
@@ -226,10 +246,12 @@ attachListClickEvent = function() {
   });
 }
 
+// pan to the marker location
 panTo = function(index) {
   map.panTo(markers[index].getPosition());
 }
 
+// attaching the close map info box click
 hideMapInfoClick = function() {
   $('.close-map-info').click(function() {
     hideMapInfo();
@@ -237,6 +259,7 @@ hideMapInfoClick = function() {
   })
 }
 
+// showing the info box
 showMapInfo = function(index) {
   var location = locations[index];
   $('.mall').html(location.mall);
@@ -244,11 +267,13 @@ showMapInfo = function(index) {
   $('#map-info').removeClass('hidden');
 }
 
+// closing the info box
 hideMapInfo = function() {
   $('#map-info').addClass('hidden');
   removeSelect();
 }
 
+// boolean return function that sees if the said marker is within the viewport of the map.
 isMarkerInBounds = function(marker) {
   return map.getBounds().contains(marker.getPosition());
 }
