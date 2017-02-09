@@ -58,7 +58,7 @@ createMarkers = function() {
 
     var marker = new google.maps.Marker({
       position: location,
-      label: ""+ label +"",
+      label: label.toString(),
       id: label,
       icon: pin
     });
@@ -92,6 +92,7 @@ createMarkers = function() {
 createClusters = function() {
   markerCluster = new MarkerClusterer(map, markers,
     {
+      minimumClusterSize: 5,
       imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
     }
   );
@@ -110,6 +111,12 @@ createList = function() {
 
 setMarker = function(index) {
   markers[index].setIcon(pinBig);
+
+  if(markers[index].getMap() === null) {
+    map.setZoom(12);
+    map.panTo(markers[index].getPosition());
+  }
+
 }
 
 resetMarker = function(index) {
