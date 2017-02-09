@@ -18,17 +18,34 @@ var markers = [];
 var markerCluster;
 var listCreated = false;
 var selectedLocations = locations;
-
+var pin = {};
+var pinBig = {};
+var selectedLocationIndex = 0;
+var hoveringLocationIndex;
 
 function initMap() {
 
   map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 10,
+    zoom: 11,
     center: {
       lat: 25.21363863,
       lng: 55.27496338
     }
   });
+
+  pin = {
+    url: 'https://maps.gstatic.com/mapfiles/api-3/images/spotlight-poi-dotless_hdpi.png',
+    scaledSize: new google.maps.Size(22, 40),
+    origin: new google.maps.Point(0, 0),
+    anchor: new google.maps.Point(11, 40)
+  }
+
+  pinBig = {
+    url: './src/images/big-pin.png',
+    scaledSize: new google.maps.Size(28, 50),
+    origin: new google.maps.Point(0, 0),
+    anchor: new google.maps.Point(14, 50)
+  }
 
   createMarkers();
   createList();
@@ -43,22 +60,29 @@ createMarkers = function() {
     var marker = new google.maps.Marker({
       position: location,
       label: ""+ label +"",
-      id: label
+      id: label,
+      icon: pin
+      // icon: './src/images/pin.png'
     });
 
     google.maps.event.addListener(marker, 'click', function() {
-      selectListItem(this.id);
+      resetMarker(selectedLocationIndex);
+      selectedLocationIndex = this.id - 1;
 
-      panTo(this.id - 1);
-      showMapInfo((this.id - 1));
+      showMapInfo(selectedLocationIndex);
+      setMarker(parseInt(selectedLocationIndex));
     });
 
     google.maps.event.addListener(marker, 'mouseover', function() {
-        highlightListItem(this.label);
+      highlightListItem(this.id);
+      setMarker(parseInt(this.id) - 1);
     });
 
     google.maps.event.addListener(marker, 'mouseout', function() {
       removeHightlight();
+      if (selectedLocationIndex !== parseInt(this.id) - 1) {
+        resetMarker(parseInt(this.id) - 1);
+      }
     });
 
     return marker;
@@ -87,6 +111,16 @@ createList = function() {
 
     listCreated = true;
     initSearch();
+  }
+}
+
+setMarker = function(index) {
+  markers[index].setIcon(pinBig);
+}
+
+resetMarker = function(index) {
+  if(!$('#store-list li').eq((index)).hasClass('selected')) {
+    markers[index].setIcon(pin);
   }
 }
 
@@ -155,30 +189,30 @@ createListItem = function(location, value) {
 attachListClickEvent = function() {
   $('#store-list').on('mouseover', 'li', function(event) {
     var index = $(this).attr('data-index');
-    var newIndex = parseInt(index) - 1;
 
-    if($('.selected').length === 0) {
-      panTo(newIndex);
-      map.setZoom(map.getZoom());
-    }
+    // what we now need to do is change the pin
+    setMarker(parseInt(index) - 1);
 
     highlightListItem(index);
   });
 
   $('#store-list').on('mouseout', 'li', function(event) {
     removeHightlight();
+    var index = $(this).attr('data-index');
+    resetMarker(parseInt(index) - 1);
   });
 
   $('#store-list').on('click', 'li', function(event) {
     var index = $(this).attr('data-index');
-    var newIndex = parseInt(index) - 1;
+    selectedLocationIndex = parseInt(index) - 1;
 
-    panTo(newIndex);
-    // map.setZoom(map.getZoom());
-    map.setZoom(14);
+    setMarker(selectedLocationIndex);
+    panTo(selectedLocationIndex);
+
+    // map.setZoom(14);
 
     selectListItem(index);
-    showMapInfo(newIndex);
+    showMapInfo(selectedLocationIndex);
   });
 }
 
@@ -189,6 +223,7 @@ panTo = function(index) {
 hideMapInfoClick = function() {
   $('.close-map-info').click(function() {
     hideMapInfo();
+    resetMarker(selectedLocationIndex)
   })
 }
 
