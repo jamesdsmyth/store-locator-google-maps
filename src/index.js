@@ -234,8 +234,6 @@ attachListClickEvent = function() {
     var index = $(this).attr('data-index');
     selectedLocationIndex = parseInt(index) - 1;
 
-    console.log(markerCluster);
-
     setMarker(selectedLocationIndex);
     panTo(selectedLocationIndex);
 
